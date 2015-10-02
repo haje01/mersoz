@@ -3,6 +3,7 @@ import re
 import codecs
 from optparse import OptionParser
 import ConfigParser
+from StringIO import StringIO
 
 
 def main():
@@ -25,20 +26,23 @@ def main():
     seperator = cfg.get(cfgsect, 'seperator')
     line_head = cfg.get(cfgsect, 'merge_line_head')
 
-    with open(catalog, 'r') as f:
-        for line in f:
-            afile = line.rstrip().split('\t')[0]
+    with open(catalog, 'r') as cf:
+        for cline in cf:
+            afile = cline.rstrip().split('\t')[0]
             match = path_ptrn.search(afile)
             if match is None:
                 continue
 
             ginfo = match.groupdict()
-            lheads = line_head.format(**ginfo).split(',')
+            lhead = seperator.join(line_head.format(**ginfo).split(','))
+            buf = StringIO()
             with codecs.open(afile, 'r', charset, errors='ignore') as f:
                 for line in f.readlines():
                     line = line.rstrip()
                     if len(line) > 0:
-                        print seperator.join(lheads + [line.encode('utf8')])
+                        buf.write(u'{}{}{}\n'.format(lhead, seperator, line))
+            print buf.getvalue().rstrip().encode('utf8')
+            buf.close()
 
 
 if __name__ == "__main__":

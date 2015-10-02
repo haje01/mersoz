@@ -131,7 +131,7 @@ def _make_catalog(cpaths, cpath, files):
 
 
 def make_build(cfgpath, tmp_dir, build_info):
-    merge_path = os.path.join(BASE_DIR, '/usr/bin/env python merge.py')
+    merge_path = os.path.join(BASE_DIR, 'merge.py')
 
     with open('build.ninja', 'w') as f:
         n = Writer(f)
@@ -147,7 +147,8 @@ def make_build(cfgpath, tmp_dir, build_info):
             cmds = []
             first = True
             if 'merge' in options:
-                cmds.append(merge_path + ' {} {} $in'.format(cfgpath, cfgsect))
+                cmds.append('/usr/bin/env python ' + merge_path +
+                            ' {} {} $in'.format(cfgpath, cfgsect))
                 first = False
             if 'sort' in options:
                 sortcol = ft_build_info['sort_col']
@@ -174,7 +175,7 @@ def _make_bulid_declare_build(n, options, dest_dir, ft_build_info, rulename):
                 (MERGED_EXT if 'merge' in options else '')
             _dest_dir = dest_dir.format(**ginfos[i])
             dpath = os.path.join(_dest_dir, bname) + \
-                ('.gz' if 'zip' in options else MERGED_EXT)
+                ('.gz' if 'zip' in options else '')
             n.build(dpath, rulename, cpath)
     elif 'sort' in options or 'zip' in options:
         sources, ginfos = ft_build_info['sortorzip']
