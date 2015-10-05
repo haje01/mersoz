@@ -2,7 +2,7 @@
 import os
 import re
 import hashlib
-from collections import defaultdict
+from collections import OrderedDict
 import StringIO
 from optparse import OptionParser
 import ConfigParser
@@ -15,7 +15,7 @@ MERGED_EXT = '.merged'
 
 
 def process(cfgpath):
-    cfg = ConfigParser.RawConfigParser(dict(seperator=' '))
+    cfg = ConfigParser.RawConfigParser(dict(tmp_dir='/tmp', seperator=' '))
     cfg.read(cfgpath)
 
     tmp_dir = cfg.get('DEFAULT', 'tmp_dir')
@@ -31,7 +31,6 @@ def process(cfgpath):
         skip_dirs = cfg.get(section, 'skip_dirs').split(',')
         seperator = cfg.get(section, 'seperator')
         options = cfg.get(section, 'options').split(',')
-        merge_by = cfg.get(section, 'merge_by')
 
         if not os.path.isdir(tmp_dir):
             os.makedirs(tmp_dir)
@@ -50,9 +49,11 @@ def process(cfgpath):
             ft_build_info['sort_col'] = sort_col
 
         if 'merge' in options:
+            merge_by = cfg.get(section, 'merge_by')
             cpaths, ginfos = make_merge_catalogs(merge_by, src_dir, tmp_dir,
                                                  skip_dirs, ftname, path_ptrn)
             ft_build_info['merge'] = (cpaths, ginfos)
+            ft_build_info['merge_name'] = cfg.get(section, 'merge_name')
         elif 'sort' in options or 'zip' in options:
             sources = []
             ginfos = []
@@ -71,6 +72,8 @@ def get_matching_files(src_dir, path_ptrn, skip_dirs):
         dirs[:] = [d for d in dirs if d not in skip_dirs]
         for afile in files:
             path = os.path.join(root, afile)
+            if '-EU-' in path:
+                return
             match = path_ptrn.search(path)
             if match is not None:
                 yield match, path
@@ -78,11 +81,13 @@ def get_matching_files(src_dir, path_ptrn, skip_dirs):
 
 def make_merge_catalogs(merge_by, src_dir, tmp_dir, skip_dirs, ftname,
                         path_ptrn):
-    catalogs = defaultdict(list)
-    cginfo = {}
+    catalogs = OrderedDict()
+    cginfo = OrderedDict()
     for match, path in get_matching_files(src_dir, path_ptrn, skip_dirs):
         ginfo = match.groupdict()
         mkey = merge_by.format(**ginfo)
+        if mkey not in catalogs:
+            catalogs[mkey] = []
         assert path not in catalogs[mkey]
         if mkey not in cginfo:
             cginfo[mkey] = ginfo
@@ -157,24 +162,29 @@ def make_build(cfgpath, tmp_dir, build_info):
             if 'zip' in options:
                 cmds.append("gzip" + (' $in' if first else ''))
 
-            rulename = '{}_rule'.format(ftname)
-            n.rule(rulename, command=' | '.join(cmds) + ' > $out')
+            rule_name = '{}_rule'.format(ftname)
+            n.rule(rule_name, command=' | '.join(cmds) + ' > $out')
+            n.newline()
 
             # declare build
             _make_bulid_declare_build(n, options, dest_dir, ft_build_info,
-                                      rulename)
+                                      rule_name)
+            n.newline()
 
 
-def _make_bulid_declare_build(n, options, dest_dir, ft_build_info, rulename):
+def _make_bulid_declare_build(n, options, dest_dir, ft_build_info, rule_name):
     if 'merge' in options:
         cpaths, ginfos = ft_build_info['merge']
         for i, cpath in enumerate(cpaths):
-            bname = os.path.basename(cpath).split('.')[0] + \
-                (MERGED_EXT if 'merge' in options else '')
+            if 'merge' in options:
+                merge_name = ft_build_info['merge_name']
+                bname = merge_name.format(**ginfos[i]) + MERGED_EXT
+            else:
+                bname = os.path.basename(cpath).split('.')[0]
             _dest_dir = dest_dir.format(**ginfos[i])
             dpath = os.path.join(_dest_dir, bname) + \
                 ('.gz' if 'zip' in options else '')
-            n.build(dpath, rulename, cpath)
+            n.build(dpath, rule_name, cpath)
     elif 'sort' in options or 'zip' in options:
         sources, ginfos = ft_build_info['sortorzip']
         for i, source in enumerate(sources):
@@ -182,7 +192,7 @@ def _make_bulid_declare_build(n, options, dest_dir, ft_build_info, rulename):
             _dest_dir = dest_dir.format(**ginfos[i])
             dpath = os.path.join(_dest_dir, bname) + \
                 ('.gz' if 'zip' in options else '')
-            n.build(dpath, rulename, source)
+            n.build(dpath, rule_name, source)
 
 
 def main():
