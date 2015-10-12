@@ -72,8 +72,6 @@ def get_matching_files(src_dir, path_ptrn, skip_dirs):
         dirs[:] = [d for d in dirs if d not in skip_dirs]
         for afile in files:
             path = os.path.join(root, afile)
-            if '-EU-' in path:
-                return
             match = path_ptrn.search(path)
             if match is not None:
                 yield match, path
