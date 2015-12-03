@@ -16,7 +16,7 @@ def main():
 
     cfg = ConfigParser.RawConfigParser(dict(seperator=' ',
                                             merge_charset='utf8',
-                                            skip_head=0))
+                                            merge_skip_head=0))
     cfgpath = os.path.expanduser(args[0])
     cfg.read(cfgpath)
     cfgsect = args[1]
@@ -26,7 +26,7 @@ def main():
     charset = cfg.get(cfgsect, 'merge_charset')
     seperator = cfg.get(cfgsect, 'seperator')
     line_head = cfg.get(cfgsect, 'merge_line_head')
-    skip_head = int(cfg.get(cfgsect, 'skip_head'))
+    merge_skip_head = int(cfg.get(cfgsect, 'merge_skip_head'))
 
     with open(catalog, 'r') as cf:
         for cline in cf:
@@ -40,7 +40,7 @@ def main():
             buf = StringIO()
             with codecs.open(afile, 'r', charset, errors='ignore') as f:
                 for i, line in enumerate(f.readlines()):
-                    if i < skip_head:
+                    if i < merge_skip_head:
                         continue
                     line = line.rstrip()
                     if len(line) > 0:
