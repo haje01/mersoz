@@ -153,7 +153,7 @@ def make_build(cfgpath, tmp_dir, build_info):
                 first = False
             if 'sort' in options:
                 sortcol = ft_build_info['sort_col']
-                cmds.append("sort -t'{}' -T {} -k{}".
+                cmds.append("sort -t$'{}' -T {} -k{}".
                             format(sep, tmp_dir, sortcol) + (' $in' if first
                                                              else ''))
                 first = False
