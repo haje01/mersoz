@@ -14,7 +14,7 @@ def main():
         parser.print_usage()
         return
 
-    cfg = ConfigParser.RawConfigParser(dict(seperator=' ',
+    cfg = ConfigParser.RawConfigParser(dict(sep=' ',
                                             merge_charset='utf8',
                                             merge_skip_head=0))
     cfgpath = os.path.expanduser(args[0])
@@ -24,7 +24,8 @@ def main():
 
     path_ptrn = re.compile(cfg.get(cfgsect, 'path_ptrn'))
     charset = cfg.get(cfgsect, 'merge_charset')
-    seperator = cfg.get(cfgsect, 'seperator')
+    sep = cfg.get(cfgsect, 'seperator')
+    sep = '\t' if sep == '\\t' else sep
     line_head = cfg.get(cfgsect, 'merge_line_head')
     merge_skip_head = int(cfg.get(cfgsect, 'merge_skip_head'))
 
@@ -36,7 +37,7 @@ def main():
                 continue
 
             ginfo = match.groupdict()
-            lhead = seperator.join(line_head.format(**ginfo).split(','))
+            lhead = sep.join(line_head.format(**ginfo).split(','))
             buf = StringIO()
             with codecs.open(afile, 'r', charset, errors='ignore') as f:
                 for i, line in enumerate(f.readlines()):
@@ -44,7 +45,7 @@ def main():
                         continue
                     line = line.rstrip()
                     if len(line) > 0:
-                        buf.write(u'{}{}{}\n'.format(lhead, seperator, line))
+                        buf.write(u'{}{}{}\n'.format(lhead, sep, line))
             print buf.getvalue().rstrip().encode('utf8')
             buf.close()
 
