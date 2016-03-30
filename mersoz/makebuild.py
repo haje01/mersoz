@@ -158,7 +158,7 @@ def make_build(cfgpath, tmp_dir, build_info):
                                                              else ''))
                 first = False
             if 'zip' in options:
-                cmds.append("gzip" + (' $in' if first else ''))
+                cmds.append("gzip -kc" + (' $in' if first else ''))
 
             rule_name = '{}_rule'.format(ftname)
             n.rule(rule_name, command=' | '.join(cmds) + ' > $out')
