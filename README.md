@@ -84,7 +84,7 @@ Make Ninja build file.
 
 ## Run
 
-Run Ninja build file, which will execute your tasks. (in parallel)
+Run Ninja build file(`build.ninja` by default), which will execute your tasks in parallel.
 
     $ sudo /usr/loca/bin/ninja
 
