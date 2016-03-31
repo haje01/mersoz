@@ -69,7 +69,7 @@ This is a sample config.
     options=sort,zip
     dest_dir=/logdata/.wrangled/c9/dblog/{node}/{year}/{month}
     sort_col=2
-    # field separator for line parser
+    # field seperator for line parser
     seperator=|
 
 ## Prepare Mersoz
