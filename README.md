@@ -33,7 +33,7 @@ This is a sample config.
     tmp_dir=/logdata/c9/_var_/tmp/mersoz
     skip_dirs=_var_,dblog,lost+found
     
-    # settings for GameServer file type
+    # specific settings for GameServer file type
     [Type:GameServer]
     # directory where target files are located
     src_dir=/logdata/c9
